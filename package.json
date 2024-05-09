@@ -22,18 +22,19 @@
     "report:publish": "npm run report; ./bin/publish-tests.sh"
   },
   "dependencies": {
-    "@babel/cli": "7.24.1",
-    "@babel/core": "7.24.4",
-    "@babel/preset-env": "7.24.4",
+    "@babel/cli": "7.24.5",
+    "@babel/core": "7.24.5",
+    "@babel/preset-env": "7.24.5",
     "@babel/register": "7.23.7",
-    "@wdio/allure-reporter": "8.34.0",
-    "@wdio/cli": "8.35.1",
-    "@wdio/globals": "8.35.1",
-    "@wdio/local-runner": "8.35.1",
-    "@wdio/mocha-framework": "8.35.0",
-    "@wdio/spec-reporter": "8.32.4",
-    "allure-commandline": "2.27.0",
-    "babel-plugin-module-resolver": "5.0.0"
+    "@wdio/allure-reporter": "8.36.1",
+    "@wdio/cli": "8.36.1",
+    "@wdio/globals": "8.36.1",
+    "@wdio/local-runner": "8.36.1",
+    "@wdio/mocha-framework": "8.36.1",
+    "@wdio/spec-reporter": "8.36.1",
+    "allure-commandline": "2.29.0",
+    "babel-plugin-module-resolver": "5.0.2",
+    "supertest": "7.0.0"
   },
   "devDependencies": {
     "eslint": "^8.57.0",
