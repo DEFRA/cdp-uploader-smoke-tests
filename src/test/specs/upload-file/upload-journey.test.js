@@ -1,96 +1,33 @@
 import { validate } from 'uuid'
-import fetch from 'node-fetch'
-import FormData from 'form-data'
-import { readFile } from 'node:fs/promises'
 import { setTimeout } from 'node:timers/promises'
 
 import { config } from '~/src/config'
+import { initiateUpload, uploadStatus } from '~/src/helpers/uploader-fetch'
+import {
+  findFileDetails,
+  initiateAndUpload
+} from '~/src/helpers/upload-helpers'
 
 const uploaderBaseUrl = config.get('uploaderBaseUrl')
-
+const destinationBucket = config.get('smokeTestBucket')
+const destinationPath = 'smoke-test'
+const scanTimeout = config.get('uploadScanTimeout')
+const pollInterval = config.get('uploadScanInterval')
+const maxAttempts = config.get('uploadMaxAttempts')
+const cleanFilename = 'unicorn-small.jpg'
+const virusFilename = 'unicorn-virus.jpg'
 const redirectUrl = 'http://httpstat.us/200'
 
 const initiatePayload = {
   redirect: redirectUrl,
-  destinationBucket: 'my-bucket',
-  destinationPath: 'my-uploads'
-}
-const scanTimeout = 1000 * 60
-const maxAttempts = 20
-const pollInterval = 1000
-const cleanFilename = 'unicorn-small.jpg'
-const virusFilename = 'unicorn-virus.jpg'
-
-async function initiateUpload() {
-  return await fetch(`${uploaderBaseUrl}/initiate`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify(initiatePayload)
-  })
-    .then((response) => response.json())
-    .then((body) => {
-      return {
-        uploadId: body.uploadId,
-        uploadUrl: body.uploadAndScanUrl,
-        statusUrl: body.statusUrl
-      }
-    })
-}
-
-async function createPayload(filename) {
-  const file = await readFile(`./${filename}`)
-  const payload = new FormData()
-  payload.append('field1', 'val1')
-  payload.append('field2', 'val2')
-  payload.append('file1', file, filename)
-  return payload
-}
-
-async function uploadFile(uploadUrl, payload) {
-  return await fetch(uploadUrl, {
-    method: 'POST',
-    redirect: 'manual',
-    body: payload
-  }).then((response) => {
-    return {
-      uploadStatusCode: response.status,
-      location: response.headers.get('location')
-    }
-  })
-}
-
-async function uploadStatus(statusUrl) {
-  const response = await fetch(statusUrl, { method: 'GET' })
-  const payload = await response.json()
-  return {
-    uploadDetails: payload
-  }
-}
-
-async function findFileDetails(statusUrl) {
-  const { uploadDetails } = await uploadStatus(statusUrl)
-  expect(uploadDetails.files).toBeDefined()
-  expect(uploadDetails.files.length).toEqual(1)
-  return {
-    rejectedFiles: uploadDetails.numberOfRejectedFiles,
-    uploadStatus: uploadDetails.uploadStatus,
-    fileDetails: uploadDetails?.files[0]
-  }
-}
-
-async function initiateAndUpload(filename) {
-  const { uploadId, uploadUrl, statusUrl } = await initiateUpload()
-  const payload = await createPayload(filename)
-  const { uploadStatusCode, location } = await uploadFile(uploadUrl, payload)
-  expect(uploadStatusCode).toEqual(302)
-  return { uploadId, statusUrl, location }
+  destinationBucket,
+  destinationPath
 }
 
 describe('CDP File uploader Smoke Test', () => {
   it('should initiate a file upload', async () => {
-    const { uploadId, uploadUrl, statusUrl } = await initiateUpload()
+    const { uploadId, uploadUrl, statusUrl } =
+      await initiateUpload(initiatePayload)
     expect(validate(uploadId)).toBeTruthy()
     expect(uploadUrl).toMatch(`${uploaderBaseUrl}/upload-and-scan/${uploadId}`)
     expect(statusUrl).toMatch(`${uploaderBaseUrl}/status/${uploadId}`)
@@ -100,8 +37,9 @@ describe('CDP File uploader Smoke Test', () => {
 
   describe('Start file upload journey', () => {
     it('should upload a file', async () => {
-      const { uploadId, statusUrl, location } =
-        await initiateAndUpload(cleanFilename)
+      const { uploadId, uploadStatusCode, statusUrl, location } =
+        await initiateAndUpload(cleanFilename, initiatePayload)
+      expect(uploadStatusCode).toEqual(302)
       expect(location).toEqual(`${redirectUrl}?uploadId=${uploadId}`)
       const { uploadStatus, fileDetails } = await findFileDetails(statusUrl)
       expect(uploadStatus).toBeDefined()
@@ -110,14 +48,17 @@ describe('CDP File uploader Smoke Test', () => {
       expect(fileDetails.filename).toEqual(cleanFilename)
       // Virus scanning may already be complete
       expect(['pending', 'ready']).toContain(uploadStatus)
-      expect(['pending', 'ready']).toContain(fileDetails.fileStatus)
+      expect(['pending', 'complete']).toContain(fileDetails.fileStatus)
     })
 
     describe('Checking file scanning', () => {
       jest.setTimeout(scanTimeout)
 
       it('should get scanned as clean', async () => {
-        const { statusUrl } = await initiateAndUpload(cleanFilename)
+        const { statusUrl } = await initiateAndUpload(
+          cleanFilename,
+          initiatePayload
+        )
         let isUploadReady = false
         let attempts = 0
         do {
@@ -139,11 +80,12 @@ describe('CDP File uploader Smoke Test', () => {
 
     // This depends on the test harness being able to serve the virus file
     it('should get rejected as infected', async () => {
-      const { statusUrl } = await initiateAndUpload(virusFilename)
+      const { statusUrl } = await initiateAndUpload(
+        virusFilename,
+        initiatePayload
+      )
       let isUploadReady = false
       let attempts = 0
-      const maxAttempts = 20
-      const pollInterval = 1000
       do {
         const { uploadStatus, fileDetails } = await findFileDetails(statusUrl)
         if (uploadStatus === 'ready' && fileDetails.fileStatus !== 'pending') {
