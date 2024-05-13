@@ -1,9 +1,9 @@
 module.exports = {
-  rootDir: '.',
+  rootDir: 'src',
   testEnvironment: 'allure-jest/node',
   testEnvironmentOptions: {
     resultsDir: './allure-results'
   },
   verbose: true,
-  testMatch: ['**/src/**/*.test.js']
+  testMatch: ['**/src/test/**/*.test.js']
 }
