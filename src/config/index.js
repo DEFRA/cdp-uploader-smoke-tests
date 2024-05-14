@@ -51,12 +51,6 @@ const config = convict({
     default: 30,
     env: 'UPLOAD_MAX_ATTEMPTS'
   },
-  uploadOnlyTimeout: {
-    doc: 'How long to poll for upload initial completion',
-    format: Number,
-    default: 1000 * 20,
-    env: 'UPLOAD_ONLY_TIMEOUT'
-  },
   uploadScanTimeout: {
     doc: 'How long to poll for scan completion',
     format: Number,
