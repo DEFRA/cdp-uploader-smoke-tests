@@ -1,6 +1,6 @@
-cdp-uploader-smoke-tests
+# cdp-uploader-smoke-tests
 
-The template to create a service that runs WDIO tests against an environment.
+The template to create a service that runs smoke tests against an environment.
 
 - [Requirements](#requirements)
   - [Node.js](#nodejs)
@@ -25,7 +25,7 @@ npm install
 
 ### Running local tests
 
-Start application you are testing on the url specified in `baseUrl` [wdio.local.conf.js](wdio.local.conf.js)
+Start application you are testing on the url specified in a `baseUrl` in `src/config/index.js`
 
 ```bash
 npm run test:local
@@ -35,6 +35,12 @@ npm run test:local
 
 ```bash
 npm run test:local:debug
+```
+
+### Reports
+
+```bash
+npm run report
 ```
 
 ## Production
