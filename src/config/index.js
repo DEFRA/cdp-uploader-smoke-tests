@@ -33,10 +33,16 @@ const config = convict({
     default: 'cdp-uploader-smoke-test-bucket',
     env: 'UPLOADER_SMOKE_TEST_BUCKET'
   },
+  smokeTestPath: {
+    doc: 'S3 prefix path for test uploads',
+    format: String,
+    default: 'smoke-test',
+    env: 'UPLOADER_SMOKE_TEST_PATH'
+  },
   uploadScanInterval: {
     doc: 'How long to delay each poll for scan completion',
     format: Number,
-    default: 2000,
+    default: 3000,
     env: 'UPLOAD_SCAN_INTERVAL'
   },
   uploadMaxAttempts: {
@@ -45,11 +51,35 @@ const config = convict({
     default: 30,
     env: 'UPLOAD_MAX_ATTEMPTS'
   },
+  uploadOnlyTimeout: {
+    doc: 'How long to poll for upload initial completion',
+    format: Number,
+    default: 1000 * 20,
+    env: 'UPLOAD_ONLY_TIMEOUT'
+  },
   uploadScanTimeout: {
     doc: 'How long to poll for scan completion',
     format: Number,
     default: 1000 * 60,
     env: 'UPLOAD_SCAN_TIMEOUT'
+  },
+  cleanFileName: {
+    doc: 'A file to upload that is clean',
+    format: String,
+    default: 'clean-file.txt',
+    env: 'CLEAN_FILE_NAME'
+  },
+  virusFileName: {
+    doc: 'A file to upload that is a virus',
+    format: String,
+    default: 'eicar-virus.txt',
+    env: 'VIRUS_FILE_NAME'
+  },
+  redirectUrl: {
+    doc: 'A URL to redirect to after upload',
+    format: String,
+    default: 'http://httpstat.us/200',
+    env: 'UPLOAD_REDIRECT_URL'
   }
 })
 
