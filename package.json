@@ -9,10 +9,8 @@
   "license": "OGL-UK-3.0",
   "scripts": {
     "clean": "rm -rf allure-results && rm -rf allure-report",
-    "test:local:debug": "DEBUG=true npm run test:local",
     "test": "TZ=UTC npm run clean && jest --verbose",
-    "test:dirty": "TZ=UTC jest --verbose",
-    "test:watch": "TZ=UTC jest --watch .js",
+    "test:watch": "TZ=UTC jest --watch",
     "format": "prettier --write 'src/**/*.js' '**/*.{js,md,json,config.js}'",
     "format:check": "prettier --check 'src/**/*.js' '**/*.{js,md,json,config.js}'",
     "lint": "eslint .",
