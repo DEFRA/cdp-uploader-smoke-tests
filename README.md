@@ -1,15 +1,14 @@
 # cdp-uploader-smoke-tests
 
-The template to create a service that runs smoke tests against an environment.
+Run smoke tests against the `CDP Uploader`.
 
 - [Requirements](#requirements)
   - [Node.js](#nodejs)
 - [Local](#local)
   - [Setup](#setup)
-  - [Running local tests](#running-local-tests)
-  - [Debugging local tests](#debugging-local-tests)
+  - [Running tests](#running-tests)
 - [Production](#production)
-  - [Debugging tests](#debugging-tests)
+- [Requirements of CDP Environment Tests](#requirements-of-cdp-environment-tests)
 - [Licence](#licence)
   - [About the licence](#about-the-licence)
 
@@ -23,18 +22,12 @@ Install application dependencies:
 npm install
 ```
 
-### Running local tests
+### Running tests
 
 Start application you are testing on the url specified in a `baseUrl` in `src/config/index.js`
 
 ```bash
-npm run test:local
-```
-
-### Debugging local tests
-
-```bash
-npm run test:local:debug
+npm run test
 ```
 
 ### Reports
