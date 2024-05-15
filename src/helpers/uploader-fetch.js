@@ -1,9 +1,10 @@
 import fetch from 'node-fetch'
 
-import { findUploaderUrl } from '~/src/helpers/uploader-url'
+import { config } from '~/src/config'
+
+const uploaderBaseUrl = config.get('uploaderBaseUrl')
 
 async function initiateUpload(payload) {
-  const uploaderBaseUrl = findUploaderUrl()
   return await fetch(`${uploaderBaseUrl}/initiate`, {
     method: 'POST',
     headers: {

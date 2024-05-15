@@ -1,16 +1,16 @@
 import { config } from '~/src/config'
 
-const envVarBucket = config.get('s3UploadBucket.environment')
+const envVarBucket = config.get('s3UploadBucket.bucket')
 const environment = process.env.ENVIRONMENT
 
 function uploaderBucket() {
-  if (!envVarBucket && environment && environment !== 'local') {
+  if (envVarBucket) {
+    return envVarBucket
+  }
+  if (environment) {
     return config.get(`s3UploadBucket.environments.${environment}`)
   }
-  if (!envVarBucket && (!environment || environment === 'local')) {
-    throw new Error('No bucket found')
-  }
-  return envVarBucket
+  throw new Error('No bucket found')
 }
 
 export { uploaderBucket }

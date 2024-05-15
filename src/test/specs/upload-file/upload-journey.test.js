@@ -9,15 +9,14 @@ import {
   initiateWithPayload,
   virusFileUpload
 } from '~/src/helpers/upload-helpers'
-import { findUploaderUrl } from '~/src/helpers/uploader-url'
 
+const uploaderBaseUrl = config.get('uploaderBaseUrl')
 const cleanFilename = config.get('cleanFileName')
 const scanTimeout = config.get('uploadScanTimeout')
 const redirectUrl = config.get('redirectUrl')
 
 describe('CDP File uploader Smoke Test', () => {
   jest.setTimeout(scanTimeout)
-  const uploaderBaseUrl = findUploaderUrl()
 
   it('should initiate a file upload', async () => {
     const { uploadId, uploadUrl, statusUrl } = await initiateWithPayload()
