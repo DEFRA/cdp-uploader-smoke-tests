@@ -50,6 +50,24 @@ const config = convict({
         format: String,
         default: 'cdp-dev-cdp-example-node-frontend-9954cf787c89',
         env: 'UPLOADER_BUCKET_DEV'
+      },
+      test: {
+        doc: 'S3 bucket for uploads in test',
+        format: String,
+        default: 'cdp-test-cdp-example-node-frontend-5c7d3242ea6f',
+        env: 'UPLOADER_BUCKET_TEST'
+      },
+      'perf-test': {
+        doc: 'S3 bucket for uploads in perf-test',
+        format: String,
+        default: 'cdp-perf-test-cdp-example-node-frontend-d4ed1e4916f3',
+        env: 'UPLOADER_BUCKET_PERF_TEST'
+      },
+      prod: {
+        doc: 'S3 bucket for uploads in prod',
+        format: String,
+        default: 'cdp-prod-cdp-example-node-frontend-6ded3a3eafe6',
+        env: 'UPLOADER_BUCKET_PROD'
       }
     }
   },
