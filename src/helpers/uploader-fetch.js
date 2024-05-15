@@ -3,7 +3,6 @@ import fetch from 'node-fetch'
 import { config } from '~/src/config'
 
 const uploaderBaseUrl = config.get('uploaderBaseUrl')
-const isNodeProduction = config.get('isNodeProduction')
 
 async function initiateUpload(payload) {
   return await fetch(`${uploaderBaseUrl}/initiate`, {
@@ -23,8 +22,7 @@ async function initiateUpload(payload) {
     })
 }
 async function uploadFile(uploadUrl, payload) {
-  const url = isNodeProduction ? uploadUrl : `${uploaderBaseUrl}${uploadUrl}`
-  return await fetch(url, {
+  return await fetch(uploadUrl, {
     method: 'POST',
     redirect: 'manual',
     body: payload

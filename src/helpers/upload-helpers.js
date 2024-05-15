@@ -105,10 +105,15 @@ async function initiateAndUpload(formPayload, initiatePayload) {
   return { uploadId, uploadStatusCode, statusUrl, location }
 }
 
+function isInAnEnvironment() {
+  return process.env.ENVIRONMENT && process.env.ENVIRONMENT !== 'local'
+}
+
 export {
   cleanFileUpload,
   findFileDetails,
   findFileDetailsWhenReady,
   initiateWithPayload,
+  isInAnEnvironment,
   virusFileUpload
 }

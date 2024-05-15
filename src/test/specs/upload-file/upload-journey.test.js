@@ -7,11 +7,11 @@ import {
   findFileDetailsWhenReady,
   cleanFileUpload,
   initiateWithPayload,
+  isInAnEnvironment,
   virusFileUpload
 } from '~/src/helpers/upload-helpers'
 
 const uploaderBaseUrl = config.get('uploaderBaseUrl')
-const isNodeProduction = config.get('isNodeProduction')
 const cleanFilename = config.get('cleanFileName')
 const scanTimeout = config.get('uploadScanTimeout')
 const redirectUrl = config.get('redirectUrl')
@@ -22,7 +22,7 @@ describe('CDP File uploader Smoke Test', () => {
   it('should initiate a file upload', async () => {
     const { uploadId, uploadUrl, statusUrl } = await initiateWithPayload()
     expect(validate(uploadId)).toBeTruthy()
-    if (isNodeProduction) {
+    if (isInAnEnvironment()) {
       expect(uploadUrl).toMatch(`/upload-and-scan/${uploadId}`)
     } else {
       expect(uploadUrl).toMatch(
