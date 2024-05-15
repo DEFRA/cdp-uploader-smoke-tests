@@ -21,6 +21,11 @@ const config = convict({
     default: null,
     env: 'CDP_HTTPS_PROXY'
   },
+  isNodeProduction: {
+    doc: 'If this application running in the production environment',
+    format: Boolean,
+    default: process.env.NODE_ENV === 'production'
+  },
   uploaderBaseUrl: {
     doc: 'Uploader Base URL',
     format: String,
