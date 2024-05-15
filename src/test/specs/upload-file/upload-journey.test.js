@@ -7,9 +7,9 @@ import {
   findFileDetailsWhenReady,
   cleanFileUpload,
   initiateWithPayload,
-  isInAnEnvironment,
   virusFileUpload
 } from '~/src/helpers/upload-helpers'
+import { isInAnEnvironment } from '~/src/helpers/is-environment'
 
 const uploaderBaseUrl = config.get('uploaderBaseUrl')
 const cleanFilename = config.get('cleanFileName')

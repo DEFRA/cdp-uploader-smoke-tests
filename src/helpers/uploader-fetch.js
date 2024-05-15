@@ -1,6 +1,7 @@
 import fetch from 'node-fetch'
 
 import { config } from '~/src/config'
+import { isInAnEnvironment } from '~/src/helpers/is-environment'
 
 const uploaderBaseUrl = config.get('uploaderBaseUrl')
 
@@ -22,7 +23,8 @@ async function initiateUpload(payload) {
     })
 }
 async function uploadFile(uploadUrl, payload) {
-  return await fetch(uploadUrl, {
+  const url = isInAnEnvironment() ? `${uploaderBaseUrl}${uploadUrl}` : uploadUrl
+  return await fetch(url, {
     method: 'POST',
     redirect: 'manual',
     body: payload
