@@ -8,12 +8,13 @@ import {
   uploadFile,
   uploadStatus
 } from '~/src/helpers/uploader-fetch'
+import { uploaderBucket } from '~/src/helpers/uploader-bucket'
 
 const pollInterval = config.get('uploadScanInterval')
 const maxAttempts = config.get('uploadMaxAttempts')
 const cleanFilename = config.get('cleanFileName')
 const virusFilename = config.get('virusFileName')
-const destinationBucket = config.get('smokeTestBucket')
+const destinationBucket = uploaderBucket()
 const destinationPath = config.get('smokeTestPath')
 const redirectUrl = config.get('redirectUrl')
 const initiatePayload = {

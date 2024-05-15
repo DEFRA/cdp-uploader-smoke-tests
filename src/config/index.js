@@ -24,14 +24,34 @@ const config = convict({
   uploaderBaseUrl: {
     doc: 'Uploader Base URL',
     format: String,
-    default: 'http://localhost:7337',
+    default: process.env.ENVIRONMENT
+      ? `https://cdp-uploader.${process.env.ENVIRONMENT}.cdp-int.defra.cloud`
+      : null,
+    nullable: false,
     env: 'CDP_UPLOADER_BASE_URL'
   },
-  smokeTestBucket: {
-    doc: 'S3 bucket for test uploads',
-    format: String,
-    default: 'cdp-uploader-smoke-test-bucket',
-    env: 'UPLOADER_SMOKE_TEST_BUCKET'
+  s3UploadBucket: {
+    bucket: {
+      doc: 'S3 bucket for uploads',
+      format: String,
+      default: null,
+      nullable: process.env.ENVIRONMENT && process.env.ENVIRONMENT !== 'local',
+      env: 'UPLOADER_BUCKET'
+    },
+    environments: {
+      'infra-dev': {
+        doc: 'S3 bucket for uploads in infra-dev',
+        format: String,
+        default: 'cdp-infra-dev-cdp-example-node-frontend-f5a9fee866ed',
+        env: 'UPLOADER_BUCKET_INFRA_DEV'
+      },
+      dev: {
+        doc: 'S3 bucket for uploads in dev',
+        format: String,
+        default: 'cdp-dev-cdp-example-node-frontend-9954cf787c89',
+        env: 'UPLOADER_BUCKET_DEV'
+      }
+    }
   },
   smokeTestPath: {
     doc: 'S3 prefix path for test uploads',

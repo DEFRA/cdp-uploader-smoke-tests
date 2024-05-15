@@ -6,8 +6,11 @@ Run smoke tests against the `CDP Uploader`.
   - [Node.js](#nodejs)
 - [Local](#local)
   - [Setup](#setup)
+  - [Local config](#local-config)
   - [Running tests](#running-tests)
-- [Production](#production)
+  - [Generate report](#report)
+- [Production](#environment-production)
+  - [Environment config](#config)
 - [Requirements of CDP Environment Tests](#requirements-of-cdp-environment-tests)
 - [Licence](#licence)
   - [About the licence](#about-the-licence)
@@ -22,6 +25,17 @@ Install application dependencies:
 npm install
 ```
 
+### Local config
+
+Set local environment variables
+
+```bash
+export UPLOADER_BUCKET=my-bucket
+export CDP_UPLOADER_BASE_URL=http://localhost:7337
+```
+
+_E.g. [direnv.net](https://direnv.net/)_
+
 ### Running tests
 
 Start application you are testing on the url specified in a `baseUrl` in `src/config/index.js`
@@ -32,11 +46,36 @@ npm run test
 
 ### Reports
 
+Generate report
+
 ```bash
 npm run report
 ```
 
+View report
+
+```bash
+open allure-results/index.html
+```
+
 ## Production
+
+### Environment Config
+
+As the environment runner is isolated it does not get injected with `cdp-app-config`
+so the environment variables are set `~/src/config/index.js`.
+
+`CDP_UPLOADER_BASE_URL` is assumed to be
+
+```
+https://cdp-uploader.${process.env.ENVIRONMENT}.cdp-int.defra.cloud
+```
+
+Whilst the `UPLOADER_BUCKET` is hardcoded per environment underneath
+
+```
+s3UploadBucket.environments: {}
+```
 
 ### Running the tests
 
