@@ -1,71 +1,111 @@
 import { validate } from 'uuid'
 
 import { config } from '~/src/config'
-import { uploadStatus } from '~/src/helpers/uploader-fetch'
 import {
-  findFileDetails,
-  findFileDetailsWhenReady,
-  cleanFileUpload,
-  initiateWithPayload,
-  virusFileUpload
-} from '~/src/helpers/upload-helpers'
-import { isInAnEnvironment } from '~/src/helpers/is-environment'
+  getStatus,
+  initiateUpload,
+  uploadFile
+} from '~/src/helpers/uploader-fetch'
+import { uploadEventuallyReady } from '~/src/helpers/upload-eventually-ready'
+import FormData from 'form-data'
+import { readFile } from 'node:fs/promises'
 
 const uploaderBaseUrl = config.get('uploaderBaseUrl')
-const cleanFilename = config.get('cleanFileName')
 const scanTimeout = config.get('uploadScanTimeout')
-const redirectUrl = config.get('redirectUrl')
+const environment = config.get('environment')
+
+const cleanFilename = 'clean-file.txt'
+const virusFilename = 'eicar-virus.txt'
+const redirectUrl = 'http://httpstat.us/200'
+
+const s3Bucket = config.get('s3UploadBucket')
+const s3Path = config.get('smokeTestPath')
+
+const initiateRequest = {
+  redirect: redirectUrl,
+  s3Bucket,
+  s3Path
+}
+
+async function fileUpload(uploadId, filename) {
+  const file = await readFile(`./testdata/${filename}`, { encoding: 'utf-8' })
+
+  const uploadRequest = new FormData()
+  uploadRequest.append('field1', 'val1')
+  uploadRequest.append('field2', 'val2')
+  uploadRequest.append('file1', file, filename)
+
+  return await uploadFile(uploadId, uploadRequest)
+}
 
 describe('CDP File uploader Smoke Test', () => {
   jest.setTimeout(scanTimeout)
 
   it('should initiate a file upload', async () => {
-    const { uploadId, uploadUrl, statusUrl } = await initiateWithPayload()
+    const { uploadId, uploadUrl, statusUrl } =
+      await initiateUpload(initiateRequest)
+
+    const expectedUploadUrl =
+      environment === 'local'
+        ? `${uploaderBaseUrl}/upload-and-scan/${uploadId}`
+        : `/upload-and-scan/${uploadId}`
+
     expect(validate(uploadId)).toBeTruthy()
-    if (isInAnEnvironment()) {
-      expect(uploadUrl).toMatch(`/upload-and-scan/${uploadId}`)
-    } else {
-      expect(uploadUrl).toMatch(
-        `${uploaderBaseUrl}/upload-and-scan/${uploadId}`
-      )
-    }
+    expect(uploadUrl).toMatch(expectedUploadUrl)
     expect(statusUrl).toMatch(`${uploaderBaseUrl}/status/${uploadId}`)
-    const { uploadDetails } = await uploadStatus(statusUrl)
-    expect(uploadDetails.uploadStatus).toEqual('initiated')
+    const { uploadStatus } = await getStatus(statusUrl)
+    expect(uploadStatus).toEqual('initiated')
   })
 
   it('should upload a file', async () => {
-    const { uploadId, uploadStatusCode, statusUrl, location } =
-      await cleanFileUpload()
-    expect(uploadStatusCode).toEqual(302)
-    expect(location).toEqual(`${redirectUrl}?uploadId=${uploadId}`)
-    const { uploadStatus, fileDetails } = await findFileDetails(statusUrl)
+    const { uploadId, statusUrl } = await initiateUpload(initiateRequest)
+    const statusCode = await fileUpload(uploadId, cleanFilename)
+    expect(statusCode).toEqual(302)
+
+    const {
+      uploadStatus,
+      form: { file1 }
+    } = await getStatus(statusUrl)
+
     expect(uploadStatus).toBeDefined()
-    expect(fileDetails?.fileStatus).toBeDefined()
-    expect(validate(fileDetails.fileId)).toBeTruthy()
-    expect(fileDetails.filename).toEqual(cleanFilename)
+    expect(file1.fileStatus).toBeDefined()
+    expect(file1.fileId).toBeTruthy()
+    expect(file1.filename).toEqual(cleanFilename)
     // Virus scanning may already be complete
     expect(['pending', 'ready']).toContain(uploadStatus)
-    expect(['pending', 'complete']).toContain(fileDetails.fileStatus)
+    expect(['pending', 'complete']).toContain(file1.fileStatus)
   })
 
   it('should scan file as clean', async () => {
-    const { statusUrl } = await cleanFileUpload()
-    const { isUploadReady } = await findFileDetailsWhenReady(statusUrl)
+    const { uploadId, statusUrl } = await initiateUpload(initiateRequest)
+    const statusCode = await fileUpload(uploadId, cleanFilename)
+    expect(statusCode).toEqual(302)
+
+    const { isUploadReady } = await uploadEventuallyReady(statusUrl)
     expect(isUploadReady).toBeTruthy()
-    const { uploadStatus, fileDetails } = await findFileDetails(statusUrl)
+    const {
+      uploadStatus,
+      form: { file1 }
+    } = await getStatus(statusUrl)
     expect(uploadStatus).toEqual('ready')
-    expect(fileDetails.fileStatus).toEqual('complete')
+    expect(file1.fileStatus).toEqual('complete')
   })
 
   it('should reject file as infected', async () => {
-    const { statusUrl } = await virusFileUpload()
-    const { isUploadReady } = await findFileDetailsWhenReady(statusUrl)
+    const { uploadId, statusUrl } = await initiateUpload(initiateRequest)
+    const statusCode = await fileUpload(uploadId, virusFilename)
+    expect(statusCode).toEqual(302)
+
+    const { isUploadReady } = await uploadEventuallyReady(statusUrl)
     expect(isUploadReady).toBeTruthy()
-    const { uploadStatus, rejectedFiles, fileDetails } =
-      await findFileDetails(statusUrl)
+    const {
+      uploadStatus,
+      form: { file1 },
+      numberOfRejectedFiles
+    } = await getStatus(statusUrl)
     expect(uploadStatus).toEqual('ready')
-    expect(fileDetails.fileStatus).toEqual('rejected')
-    expect(rejectedFiles).toBe(1)
+    expect(file1.fileStatus).toEqual('rejected')
+    expect(file1.hasError).toEqual(true)
+    expect(numberOfRejectedFiles).toBe(1)
   })
 })

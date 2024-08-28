@@ -1,5 +1,21 @@
 import convict from 'convict'
 
+const environment = process.env.ENVIRONMENT || 'local'
+
+const defaultBuckets = {
+  local: 'my-bucket',
+  'infra-dev': 'cdp-infra-dev-cdp-example-node-frontend-f5a9fee866ed',
+  dev: 'cdp-dev-cdp-example-node-frontend-9954cf787c89',
+  test: 'cdp-test-cdp-example-node-frontend-5c7d3242ea6f',
+  'perf-test': 'cdp-perf-test-cdp-example-node-frontend-d4ed1e4916f3',
+  prod: 'cdp-prod-cdp-example-node-frontend-6ded3a3eafe6'
+}
+
+const defaultBaseUrl =
+  environment === 'local'
+    ? 'http://localhost:7337'
+    : `https://cdp-uploader.${environment}.cdp-int.defra.cloud`
+
 const config = convict({
   logLevel: {
     doc: 'Logging level',
@@ -21,55 +37,24 @@ const config = convict({
     default: null,
     env: 'CDP_HTTPS_PROXY'
   },
+  environment: {
+    doc: 'Environment to test',
+    format: String,
+    default: 'local',
+    env: 'ENVIRONMENT'
+  },
   uploaderBaseUrl: {
     doc: 'Uploader Base URL',
     format: String,
-    default: process.env.ENVIRONMENT
-      ? `https://cdp-uploader.${process.env.ENVIRONMENT}.cdp-int.defra.cloud`
-      : null,
+    default: defaultBaseUrl,
     nullable: false,
     env: 'CDP_UPLOADER_BASE_URL'
   },
   s3UploadBucket: {
-    bucket: {
-      doc: 'S3 bucket for uploads',
-      format: String,
-      default: null,
-      nullable: process.env.ENVIRONMENT && process.env.ENVIRONMENT !== 'local',
-      env: 'UPLOADER_BUCKET'
-    },
-    environments: {
-      'infra-dev': {
-        doc: 'S3 bucket for uploads in infra-dev',
-        format: String,
-        default: 'cdp-infra-dev-cdp-example-node-frontend-f5a9fee866ed',
-        env: 'UPLOADER_BUCKET_INFRA_DEV'
-      },
-      dev: {
-        doc: 'S3 bucket for uploads in dev',
-        format: String,
-        default: 'cdp-dev-cdp-example-node-frontend-9954cf787c89',
-        env: 'UPLOADER_BUCKET_DEV'
-      },
-      test: {
-        doc: 'S3 bucket for uploads in test',
-        format: String,
-        default: 'cdp-test-cdp-example-node-frontend-5c7d3242ea6f',
-        env: 'UPLOADER_BUCKET_TEST'
-      },
-      'perf-test': {
-        doc: 'S3 bucket for uploads in perf-test',
-        format: String,
-        default: 'cdp-perf-test-cdp-example-node-frontend-d4ed1e4916f3',
-        env: 'UPLOADER_BUCKET_PERF_TEST'
-      },
-      prod: {
-        doc: 'S3 bucket for uploads in prod',
-        format: String,
-        default: 'cdp-prod-cdp-example-node-frontend-6ded3a3eafe6',
-        env: 'UPLOADER_BUCKET_PROD'
-      }
-    }
+    doc: 'S3 bucket for uploads',
+    format: String,
+    default: defaultBuckets[environment],
+    env: 'UPLOADER_BUCKET'
   },
   smokeTestPath: {
     doc: 'S3 prefix path for test uploads',
@@ -94,24 +79,6 @@ const config = convict({
     format: Number,
     default: 1000 * 60,
     env: 'UPLOAD_SCAN_TIMEOUT'
-  },
-  cleanFileName: {
-    doc: 'A file to upload that is clean',
-    format: String,
-    default: 'clean-file.txt',
-    env: 'CLEAN_FILE_NAME'
-  },
-  virusFileName: {
-    doc: 'A file to upload that is a virus',
-    format: String,
-    default: 'eicar-virus.txt',
-    env: 'VIRUS_FILE_NAME'
-  },
-  redirectUrl: {
-    doc: 'A URL to redirect to after upload',
-    format: String,
-    default: 'http://httpstat.us/200',
-    env: 'UPLOAD_REDIRECT_URL'
   }
 })
 

@@ -1,47 +1,29 @@
 import fetch from 'node-fetch'
 
 import { config } from '~/src/config'
-import { isInAnEnvironment } from '~/src/helpers/is-environment'
 
 const uploaderBaseUrl = config.get('uploaderBaseUrl')
 
-async function initiateUpload(payload) {
+async function initiateUpload(request) {
   return await fetch(`${uploaderBaseUrl}/initiate`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json'
     },
-    body: JSON.stringify(payload)
-  })
-    .then((response) => response.json())
-    .then((body) => {
-      return {
-        uploadId: body.uploadId,
-        uploadUrl: body.uploadAndScanUrl,
-        statusUrl: body.statusUrl
-      }
-    })
+    body: JSON.stringify(request)
+  }).then((response) => response.json())
 }
-async function uploadFile(uploadUrl, payload) {
-  const url = isInAnEnvironment() ? `${uploaderBaseUrl}${uploadUrl}` : uploadUrl
+async function uploadFile(uploadId, request) {
+  const url = `${uploaderBaseUrl}/upload-and-scan/${uploadId}`
   return await fetch(url, {
     method: 'POST',
     redirect: 'manual',
-    body: payload
-  }).then((response) => {
-    return {
-      uploadStatusCode: response.status,
-      location: response.headers.get('location')
-    }
-  })
+    body: request
+  }).then((response) => response.status)
 }
 
-async function uploadStatus(statusUrl) {
-  const response = await fetch(statusUrl, { method: 'GET' })
-  const payload = await response.json()
-  return {
-    uploadDetails: payload
-  }
+async function getStatus(url) {
+  return await fetch(url, { method: 'GET' }).then((response) => response.json())
 }
 
-export { initiateUpload, uploadFile, uploadStatus }
+export { initiateUpload, uploadFile, getStatus }
