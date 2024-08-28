@@ -16,7 +16,8 @@ const environment = config.get('environment')
 
 const cleanFilename = 'clean-file.txt'
 const virusFilename = 'eicar-virus.txt'
-const redirectUrl = 'http://httpstat.us/200'
+const redirectUrl =
+  environment === 'local' ? `${uploaderBaseUrl}/health` : 'health'
 
 const s3Bucket = config.get('s3UploadBucket')
 const s3Path = config.get('smokeTestPath')
