@@ -34,7 +34,10 @@ async function fileUpload(uploadId, filename) {
   const uploadRequest = new FormData()
   uploadRequest.append('field1', 'val1')
   uploadRequest.append('field2', 'val2')
-  uploadRequest.append('file1', file, filename)
+  uploadRequest.append('field3', 'val3')
+  uploadRequest.append('field3', 'val4')
+  uploadRequest.append('field4', '')
+  uploadRequest.append('file', file, filename)
 
   return await uploadFile(uploadId, uploadRequest)
 }
@@ -65,16 +68,15 @@ describe('CDP File uploader Smoke Test', () => {
 
     const {
       uploadStatus,
-      form: { file1 }
+      form: { file }
     } = await getStatus(statusUrl)
 
-    expect(uploadStatus).toBeDefined()
-    expect(file1.fileStatus).toBeDefined()
-    expect(file1.fileId).toBeTruthy()
-    expect(file1.filename).toEqual(cleanFilename)
+    expect(validate(uploadId)).toBeTruthy()
+    expect(validate(file.fileId)).toBeTruthy()
+    expect(file.filename).toEqual(cleanFilename)
     // Virus scanning may already be complete
     expect(['pending', 'ready']).toContain(uploadStatus)
-    expect(['pending', 'complete']).toContain(file1.fileStatus)
+    expect(['pending', 'complete']).toContain(file.fileStatus)
   })
 
   it('should scan file as clean', async () => {
@@ -84,12 +86,24 @@ describe('CDP File uploader Smoke Test', () => {
 
     const { isUploadReady } = await uploadEventuallyReady(statusUrl)
     expect(isUploadReady).toBeTruthy()
-    const {
-      uploadStatus,
-      form: { file1 }
-    } = await getStatus(statusUrl)
-    expect(uploadStatus).toEqual('ready')
-    expect(file1.fileStatus).toEqual('complete')
+
+    const status = await getStatus(statusUrl)
+    expect(status).toMatchObject({
+      uploadStatus: 'ready',
+      form: {
+        field1: 'val1',
+        field2: 'val2',
+        field3: ['val3', 'val4'],
+        field4: '',
+        file: {
+          fileStatus: 'complete',
+          filename: cleanFilename,
+          contentType: 'text/plain',
+          contentLength: 55,
+          checksumSha256: 'dk5WkxTM9CK4wW3t7HSxOVZbtFad1eamKYhEBRkbkFs='
+        }
+      }
+    })
   })
 
   it('should reject file as infected', async () => {
@@ -99,14 +113,27 @@ describe('CDP File uploader Smoke Test', () => {
 
     const { isUploadReady } = await uploadEventuallyReady(statusUrl)
     expect(isUploadReady).toBeTruthy()
-    const {
-      uploadStatus,
-      form: { file1 },
-      numberOfRejectedFiles
-    } = await getStatus(statusUrl)
-    expect(uploadStatus).toEqual('ready')
-    expect(file1.fileStatus).toEqual('rejected')
-    expect(file1.hasError).toEqual(true)
-    expect(numberOfRejectedFiles).toBe(1)
+
+    const status = await getStatus(statusUrl)
+
+    expect(status).toMatchObject({
+      uploadStatus: 'ready',
+      form: {
+        field1: 'val1',
+        field2: 'val2',
+        field3: ['val3', 'val4'],
+        field4: '',
+        file: {
+          filename: virusFilename,
+          contentType: 'text/plain',
+          fileStatus: 'rejected',
+          contentLength: 68,
+          checksumSha256: 'J1oCG7+2SJ5U1HGJn3250WY/xpXsL+KixFOKq/ZR/Q8=',
+          hasError: true,
+          errorMessage: 'The selected file contains a virus'
+        }
+      },
+      numberOfRejectedFiles: 1
+    })
   })
 })

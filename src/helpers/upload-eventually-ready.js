@@ -12,9 +12,9 @@ async function uploadEventuallyReady(statusUrl) {
   do {
     const {
       uploadStatus,
-      form: { file1 }
+      form: { file }
     } = await getStatus(statusUrl)
-    if (uploadStatus === 'ready' && file1.fileStatus !== 'pending') {
+    if (uploadStatus === 'ready' && file.fileStatus !== 'pending') {
       isUploadReady = true
     }
     attempts++
