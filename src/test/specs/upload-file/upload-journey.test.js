@@ -15,7 +15,9 @@ const scanTimeout = config.get('uploadScanTimeout')
 const environment = config.get('environment')
 
 const cleanFilename = 'clean-file.txt'
+const cleanPdfFilename = 'clean.pdf'
 const virusFilename = 'eicar-virus.txt'
+
 const redirectUrl =
   environment === 'local' ? `${uploaderBaseUrl}/health` : 'health'
 
@@ -29,7 +31,7 @@ const initiateRequest = {
 }
 
 async function fileUpload(uploadId, filename) {
-  const file = await readFile(`./testdata/${filename}`, { encoding: 'utf-8' })
+  const file = await readFile(`./testdata/${filename}`)
 
   const uploadRequest = new FormData()
   uploadRequest.append('field1', 'val1')
@@ -101,6 +103,34 @@ describe('CDP File uploader Smoke Test', () => {
           contentType: 'text/plain',
           contentLength: 55,
           checksumSha256: 'dk5WkxTM9CK4wW3t7HSxOVZbtFad1eamKYhEBRkbkFs='
+        }
+      }
+    })
+  })
+
+  it('should scan pdf as clean', async () => {
+    const { uploadId, statusUrl } = await initiateUpload(initiateRequest)
+    const statusCode = await fileUpload(uploadId, cleanPdfFilename)
+    expect(statusCode).toEqual(302)
+
+    const { isUploadReady } = await uploadEventuallyReady(statusUrl)
+    expect(isUploadReady).toBeTruthy()
+
+    const status = await getStatus(statusUrl)
+    expect(status).toMatchObject({
+      uploadStatus: 'ready',
+      form: {
+        field1: 'val1',
+        field2: 'val2',
+        field3: ['val3', 'val4'],
+        field4: '',
+        file: {
+          fileStatus: 'complete',
+          filename: cleanPdfFilename,
+          contentType: 'application/pdf',
+          contentLength: 14676,
+          checksumSha256: 'vS3LfrRGFEyG96zzRe21iLKXZ2N4/SHqFBaonOqXmTk=',
+          detectedContentType: 'application/pdf'
         }
       }
     })
