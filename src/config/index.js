@@ -8,6 +8,7 @@ const defaultBuckets = {
   dev: 'cdp-dev-cdp-example-node-frontend-9954cf787c89',
   test: 'cdp-test-cdp-example-node-frontend-5c7d3242ea6f',
   'perf-test': 'cdp-perf-test-cdp-example-node-frontend-d4ed1e4916f3',
+  'ext-test': 'cdp-ext-test-cdp-example-node-frontend-8ec5c',
   prod: 'cdp-prod-cdp-example-node-frontend-6ded3a3eafe6'
 }
 
